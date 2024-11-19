@@ -11,6 +11,7 @@ git repo: https://github.com/Grix/helios_dac.git
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using LibUsbDotNet;
@@ -54,7 +55,7 @@ namespace HeliosDac
                     {
                         if (usbRegistry.Open(out UsbDevice dac))
                         {
-                            IUsbDevice? libUsbDevice = dac as IUsbDevice;
+                            IUsbDevice libUsbDevice = dac as IUsbDevice;
                             if (libUsbDevice != null)
                             {
                                 libUsbDevice.ClaimInterface(0);
@@ -429,7 +430,9 @@ namespace HeliosDac
                     byte[] readData = new byte[32];
                     errorCode = interruptEndpointReader.Read(readData, 32, out int readTransferLength);
                     if (errorCode == ErrorCode.Ok && readTransferLength > 2 && readData[0] == 0x85)
-                        return Encoding.ASCII.GetString(readData.Skip(1).TakeWhile((character, index) => { return character != 0 && index < readTransferLength; }).ToArray());
+                        return Encoding.ASCII.GetString(readData.Skip(1)
+                                                                .TakeWhile((character, index) => { return character != 0 && index < readTransferLength; })
+                                                                .ToArray());
                     else
                         throw new Exception("Did not get valid response from DAC. Error code: " + errorCode.ToString());
                 }
